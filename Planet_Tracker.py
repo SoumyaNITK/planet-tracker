@@ -12,8 +12,8 @@ st.title("🌌 Planet Tracker")
 st.markdown("Enter your location and choose a time to see visible planets in the sky.")
 
 # Location input
-latitude = st.number_input("Latitude (°)", value=0.0, format="%.5f")
-longitude = st.number_input("Longitude (°)", value=0.0, format="%.5f")
+latitude = st.number_input("Latitude (°)", value=13.00844, format="%.5f")
+longitude = st.number_input("Longitude (°)", value=74.79777, format="%.5f")
 location = EarthLocation(lat=latitude * u.deg, lon=longitude * u.deg)
 
 # Time slider
@@ -26,6 +26,7 @@ slider_time = st.slider(
     format="HH:mm"
 )
 
+# Convert slider value to Time object in UTC
 time_utc = Time(slider_time)
 time_ist = time_utc + 5.5 * u.hour
 altaz = AltAz(location=location, obstime=time_utc)
