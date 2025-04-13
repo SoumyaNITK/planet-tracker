@@ -1,36 +1,49 @@
-import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.coordinates import EarthLocation, AltAz, get_body, get_sun
 from astropy.time import Time
 from astropy import units as u
+import streamlit as st
 from datetime import datetime, timedelta
 
-# --- Page Config ---
-st.set_page_config(page_title="Planet Tracker 🪐", layout="wide")
+st.set_page_config(page_title="Planet Tracker", layout="centered")
 
-st.title("🌍 Planet & Sun Tracker")
-st.markdown("Visualize the positions of planets and the Sun based on your location and time.")
+st.title("🪐 Planet & Sun Tracker")
 
 # --- Location Input ---
 st.subheader("📍 Enter Your Location")
-col1, col2 = st.columns(2)
-lat = col1.number_input("Latitude (°)", value=13.00844, format="%.5f")
-lon = col2.number_input("Longitude (°)", value=74.79777, format="%.5f")
-
-location = EarthLocation(lat=lat * u.deg, lon=lon * u.deg)
+latitude = st.number_input("Latitude (°)", value=13.00844, format="%.5f")
+longitude = st.number_input("Longitude (°)", value=74.79777, format="%.5f")
+location = EarthLocation(lat=latitude*u.deg, lon=longitude*u.deg)
 
 # --- Time Input (IST) ---
 st.subheader("🕒 Select Time (IST)")
-selected_date = st.date_input("Choose a date", value=datetime.now().date())
-selected_time = st.time_input("Choose time (IST)", value=(datetime.now() + timedelta(minutes=30)).time())
 
-slider_time_ist = datetime.combine(selected_date, selected_time)
+# Initialize session state
+if 'selected_date' not in st.session_state:
+    st.session_state.selected_date = datetime.now().date()
+if 'selected_time' not in st.session_state:
+    st.session_state.selected_time = (datetime.now() + timedelta(minutes=30)).time()
+
+# Time input
+col1, col2 = st.columns([2, 1])
+with col1:
+    selected_date = st.date_input("Choose a date", value=st.session_state.selected_date, key='selected_date')
+    selected_time = st.time_input("Choose time (IST)", value=st.session_state.selected_time, key='selected_time')
+with col2:
+    if st.button("Use Current Time"):
+        now = datetime.now()
+        st.session_state.selected_date = now.date()
+        st.session_state.selected_time = now.time()
+
+# Combine inputs into datetime
+slider_time_ist = datetime.combine(st.session_state.selected_date, st.session_state.selected_time)
 slider_time_utc = slider_time_ist - timedelta(hours=5, minutes=30)
-time_utc = Time(slider_time_utc)
-altaz = AltAz(location=location, obstime=time_utc)
 
-# --- Planet Data ---
+# AltAz frame
+altaz = AltAz(location=location, obstime=Time(slider_time_utc))
+
+# --- Track Planets and Sun ---
 planets = {
     "mercury": "blue",
     "venus": "orange",
@@ -42,27 +55,33 @@ planets = {
     "sun": "yellow"
 }
 
-altitudes, azimuths, labels, colors = [], [], [], []
+altitudes = []
+azimuths = []
+labels = []
+colors = []
 
-sun = get_sun(time_utc).transform_to(altaz)
+sun = get_sun(Time(slider_time_utc)).transform_to(altaz)
 is_night = sun.alt.degree < -6
 is_day = sun.alt.degree > 0
 
 for planet, color in planets.items():
-    obj = sun if planet == "sun" else get_body(planet, time_utc, location).transform_to(altaz)
+    if planet == "sun":
+        obj = sun
+    else:
+        obj = get_body(planet, Time(slider_time_utc), location).transform_to(altaz)
     if obj.alt.degree > 0:
         altitudes.append(obj.alt.degree)
         azimuths.append(obj.az.degree)
         labels.append(planet.capitalize())
         colors.append(color)
 
-# --- Display Sky Plot ---
+# --- Plotting ---
 if not labels:
-    st.warning(f"No planets or the Sun are visible at {slider_time_ist.strftime('%Y-%m-%d %H:%M IST')}.")
+    st.info(f"No planets or Sun visible above the horizon at {slider_time_ist.strftime('%Y-%m-%d %H:%M IST')}.")
 else:
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'}, figsize=(8, 8))
 
-    # Set sky color
+    # Background color based on time
     if is_night:
         ax.set_facecolor('#0a0a23')
         alpha = 1.0
@@ -74,13 +93,13 @@ else:
         alpha = 0.6
 
     azimuths_rad = np.radians(azimuths)
-    altitudes_plot = 90 - np.array(altitudes)
+    altitudes_polar = 90 - np.array(altitudes)
     sizes = [200 if label == "Sun" else 100 for label in labels]
 
-    scatter = ax.scatter(azimuths_rad, altitudes_plot, c=colors, s=sizes, alpha=alpha)
+    ax.scatter(azimuths_rad, altitudes_polar, c=colors, s=sizes, alpha=alpha)
 
     for i, txt in enumerate(labels):
-        ax.text(azimuths_rad[i], altitudes_plot[i], txt, fontsize=12, ha='right', color=colors[i], alpha=alpha)
+        ax.text(azimuths_rad[i], altitudes_polar[i], txt, fontsize=12, ha='right', color=colors[i], alpha=alpha)
 
     ax.set_theta_zero_location("N")
     ax.set_theta_direction(-1)
@@ -88,16 +107,16 @@ else:
     ax.set_rticks([30, 60, 90])
     ax.set_xticks(np.radians([0, 90, 180, 270]))
     ax.set_xticklabels(["0° (N)", "90° (E)", "180° (S)", "270° (W)"])
-    ax.grid(True, linestyle="--", alpha=0.6)
 
     from matplotlib.lines import Line2D
-    legend_elements = [Line2D([0], [0], marker='o', color='w', label=labels[i],
-                              markerfacecolor=colors[i], markersize=14 if labels[i] == "Sun" else 10)
+    legend_elements = [Line2D([0], [0], marker='o', color='w', label=labels[i], 
+                              markerfacecolor=colors[i], markersize=14 if labels[i] == "Sun" else 10) 
                        for i in range(len(labels))]
-    ax.legend(handles=legend_elements, loc="upper left", bbox_to_anchor=(-0.2, 1.0), fontsize=9)
+    ax.legend(handles=legend_elements, loc="upper left", bbox_to_anchor=(-0.2, 1.0), fontsize=10)
 
+    ax.grid(True, linestyle="--", alpha=0.6)
     title_color = 'white' if is_night else 'green'
-    ax.set_title(f"🪐 Sky View at {slider_time_ist.strftime('%Y-%m-%d %H:%M IST')}", 
+    ax.set_title(f"🌍 Planets & Sun at {slider_time_ist.strftime('%Y-%m-%d %H:%M IST')}", 
                  fontsize=14, color=title_color, pad=30)
 
     st.pyplot(fig)
