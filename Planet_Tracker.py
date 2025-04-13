@@ -11,7 +11,7 @@ st.set_page_config(page_title="🌍 Planet Tracker", layout="wide")
 st.title("🌍 Planet Tracker (India)")
 st.markdown("See which planets and the Sun are visible in the sky above you.")
 
-# Input location
+# Location input
 col1, col2 = st.columns(2)
 with col1:
     lat = st.number_input("Latitude (°)", value=13.00844, format="%.5f")
@@ -20,14 +20,23 @@ with col2:
 
 location = EarthLocation(lat=lat * u.deg, lon=lon * u.deg)
 
-# Time input (default to current IST)
-current_ist = datetime.datetime.utcnow() + datetime.timedelta(hours=5.5)
-custom_time = st.time_input("Select time (IST)", value=current_ist.time())
-custom_date = st.date_input("Select date", value=current_ist.date())
+# Initialize session state with current IST
+if 'date' not in st.session_state or 'time' not in st.session_state:
+    current_ist = datetime.datetime.utcnow() + datetime.timedelta(hours=5.5)
+    st.session_state['date'] = current_ist.date()
+    st.session_state['time'] = current_ist.time().replace(second=0, microsecond=0)
 
-time_ist = datetime.datetime.combine(custom_date, custom_time)
+# User can change the time, which will be stored in session state
+date = st.date_input("Select date", value=st.session_state['date'])
+time = st.time_input("Select time (IST)", value=st.session_state['time'])
+
+# Update session state
+st.session_state['date'] = date
+st.session_state['time'] = time
+
+# Convert to UTC
+time_ist = datetime.datetime.combine(date, time)
 time_utc = Time(time_ist - datetime.timedelta(hours=5.5))
-
 altaz = AltAz(location=location, obstime=time_utc)
 
 # Define planets and their colors
@@ -48,12 +57,8 @@ sun = get_sun(time_utc).transform_to(altaz)
 is_night = sun.alt.degree < -6
 is_day = sun.alt.degree > 0
 
-# Add visible celestial bodies
 for planet, color in planets.items():
-    if planet == "sun":
-        obj = sun
-    else:
-        obj = get_body(planet, time_utc, location).transform_to(altaz)
+    obj = sun if planet == "sun" else get_body(planet, time_utc, location).transform_to(altaz)
     if obj.alt.degree > 0:
         altitudes.append(obj.alt.degree)
         azimuths.append(obj.az.degree)
@@ -67,7 +72,6 @@ if not labels:
 else:
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'}, figsize=(10, 10))
 
-    # Sky color based on day/night
     if is_night:
         ax.set_facecolor('#0a0a23')
         alpha = 1.0
