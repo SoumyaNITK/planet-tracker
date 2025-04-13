@@ -101,10 +101,10 @@ else:
         ax.set_facecolor('#0a0a23')
         alpha = 1.0
     elif is_day:
-        ax.set_facecolor('#e5e6ae')
+        ax.set_facecolor('#14d976')
         alpha = 0.3
     else:
-        ax.set_facecolor('#2c7491')
+        ax.set_facecolor('#d4727e')
         alpha = 0.6
 
     azimuths_rad = np.radians(azimuths)
