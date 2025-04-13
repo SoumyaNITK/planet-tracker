@@ -90,4 +90,4 @@ else:
     ax.set_title(f"🌍 Planets & Sun at {time_ist.to_datetime().strftime('%Y-%m-%d %H:%M IST')}", 
                  fontsize=14, color=title_color,pad=30)
 
-    plt.show()
+    st.pyplot(fig)
