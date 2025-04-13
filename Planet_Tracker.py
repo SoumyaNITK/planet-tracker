@@ -114,7 +114,7 @@ else:
 
     ax.grid(True, linestyle="--", alpha=0.6)
     title_color = '#041236' if is_night else '#041236'
-    ax.set_title(f"🌍 Planets & Sun at {time_ist.strftime('%Y-%m-%d %H:%M IST')}",
+    ax.set_title(f"Planets & Sun at {time_ist.strftime('%Y-%m-%d %H:%M IST')}",
                  fontsize=14, color=title_color, pad=30)
 
     st.pyplot(fig)
