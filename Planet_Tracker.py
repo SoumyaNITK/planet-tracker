@@ -8,7 +8,7 @@ import datetime
 
 st.set_page_config(page_title="🌍 Planet Tracker", layout="wide")
 
-st.title("🌍 Planet Tracker (India)")
+st.title("🌍 Planet Tracker")
 st.markdown("See which planets and the Sun are visible in the sky above you.")
 
 # Location input
@@ -28,14 +28,22 @@ if 'date' not in st.session_state or 'time' not in st.session_state:
 
 # User can change the time, which will be stored in session state
 date = st.date_input("Select date", value=st.session_state['date'])
-time = st.time_input("Select time (IST)", value=st.session_state['time'])
+
+# Allow the user to manually type the time in HH:MM format
+time_input = st.text_input("Enter time (IST) in HH:MM format", value=st.session_state['time'].strftime("%H:%M"))
+
+# Parse the manually entered time
+try:
+    time = datetime.datetime.strptime(time_input, "%H:%M").time()
+    st.session_state['time'] = time
+except ValueError:
+    st.warning("Invalid time format! Please enter in HH:MM format.")
 
 # Update session state
 st.session_state['date'] = date
-st.session_state['time'] = time
 
 # Convert to UTC
-time_ist = datetime.datetime.combine(date, time)
+time_ist = datetime.datetime.combine(date, st.session_state['time'])
 time_utc = Time(time_ist - datetime.timedelta(hours=5.5))
 altaz = AltAz(location=location, obstime=time_utc)
 
