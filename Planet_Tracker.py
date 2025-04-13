@@ -8,8 +8,8 @@ from geopy.geocoders import Nominatim
 import datetime
 import re
 
-st.set_page_config(page_title="🌍 Planet Tracker", layout="wide")
-st.title("🌍 Planet Tracker")
+st.set_page_config(page_title="🌍 Planet Tracker by Soumya", layout="wide")
+st.title("🌍 Planet Tracker by Soumya")
 st.markdown("See which planets and the Sun are visible in the sky above you.")
 
 # Location input
