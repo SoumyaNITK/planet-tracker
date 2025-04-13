@@ -28,38 +28,37 @@ try:
     if location_name:
         st.markdown(f"**Location**: {location_name.address}")
 except Exception:
-    pass
+    pass  # If geopy fails, continue silently
 
 # Show current IST time
 current_ist = datetime.datetime.utcnow() + datetime.timedelta(hours=5.5)
 st.markdown(f"**Current IST**: {current_ist.strftime('%Y-%m-%d %H:%M')}")
 
-# Initialize session state
-if 'date' not in st.session_state:
-    st.session_state['date'] = current_ist.date()
-
-if 'time' not in st.session_state:
-    st.session_state['time'] = current_ist.time().replace(second=0, microsecond=0)
+# Initialize session state for time
+if "time_input" not in st.session_state:
+    current_time_str = current_ist.strftime("%H:%M")
+    st.session_state.time_input = current_time_str
+    st.session_state.time = datetime.datetime.strptime(current_time_str, "%H:%M").time()
 
 # Date input
-date = st.date_input("Select date", value=st.session_state['date'])
-st.session_state['date'] = date
+date = st.date_input("Select date", value=st.session_state.get('date', current_ist.date()))
+st.session_state.date = date
 
-# Time input with key
-time_input = st.text_input("Enter time (IST) in HH:MM format", value=st.session_state['time'].strftime("%H:%M"), key="time_input")
+# Time input
+time_input = st.text_input("Enter time (IST) in HH:MM format", key="time_input")
 
-# Process time input safely
-try:
-    if re.match(r"^\d{2}:\d{2}$", time_input.strip()):
+# Time validation
+if re.match(r"^\d{2}:\d{2}$", time_input.strip()):
+    try:
         parsed_time = datetime.datetime.strptime(time_input.strip(), "%H:%M").time()
-        st.session_state['time'] = parsed_time
-    else:
-        st.warning("Please enter time in HH:MM format.")
-except:
-    st.warning("Invalid time format!")
+        st.session_state.time = parsed_time
+    except ValueError:
+        st.warning("Invalid time! Use 24-hour format like 18:30.")
+else:
+    st.warning("Invalid format! Please enter time in HH:MM format.")
 
-# Combine date and time, convert to UTC
-time_ist = datetime.datetime.combine(st.session_state['date'], st.session_state['time'])
+# Convert to UTC
+time_ist = datetime.datetime.combine(st.session_state.date, st.session_state.time)
 time_utc = Time(time_ist - datetime.timedelta(hours=5.5))
 altaz = AltAz(location=location, obstime=time_utc)
 
