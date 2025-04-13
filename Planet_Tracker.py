@@ -4,10 +4,11 @@ import matplotlib.pyplot as plt
 from astropy.coordinates import EarthLocation, AltAz, get_body, get_sun
 from astropy.time import Time
 from astropy import units as u
+from geopy.geocoders import Nominatim
 import datetime
+import re
 
 st.set_page_config(page_title="🌍 Planet Tracker", layout="wide")
-
 st.title("🌍 Planet Tracker")
 st.markdown("See which planets and the Sun are visible in the sky above you.")
 
@@ -20,26 +21,38 @@ with col2:
 
 location = EarthLocation(lat=lat * u.deg, lon=lon * u.deg)
 
-# Initialize session state with current IST
+# Show location name using geopy
+try:
+    geolocator = Nominatim(user_agent="planet_tracker")
+    location_name = geolocator.reverse((lat, lon), language="en")
+    if location_name:
+        st.markdown(f"**Location**: {location_name.address}")
+except Exception:
+    pass  # If geopy fails, continue silently
+
+# Show current IST time
+current_ist = datetime.datetime.utcnow() + datetime.timedelta(hours=5.5)
+st.markdown(f"**Current IST**: {current_ist.strftime('%Y-%m-%d %H:%M')}")
+
+# Initialize session state
 if 'date' not in st.session_state or 'time' not in st.session_state:
-    current_ist = datetime.datetime.utcnow() + datetime.timedelta(hours=5.5)
     st.session_state['date'] = current_ist.date()
     st.session_state['time'] = current_ist.time().replace(second=0, microsecond=0)
 
-# User can change the time, which will be stored in session state
+# Date and time input
 date = st.date_input("Select date", value=st.session_state['date'])
-
-# Allow the user to manually type the time in HH:MM format
 time_input = st.text_input("Enter time (IST) in HH:MM format", value=st.session_state['time'].strftime("%H:%M"))
 
-# Parse the manually entered time
-try:
-    time = datetime.datetime.strptime(time_input, "%H:%M").time()
-    st.session_state['time'] = time
-except ValueError:
-    st.warning("Invalid time format! Please enter in HH:MM format.")
+# Validate time format
+if re.match(r"^\d{2}:\d{2}$", time_input):
+    try:
+        time = datetime.datetime.strptime(time_input, "%H:%M").time()
+        st.session_state['time'] = time
+    except ValueError:
+        st.warning("Invalid time! Use 24-hour format like 18:30.")
+else:
+    st.warning("Invalid format! Please enter time in HH:MM format.")
 
-# Update session state
 st.session_state['date'] = date
 
 # Convert to UTC
@@ -47,7 +60,7 @@ time_ist = datetime.datetime.combine(date, st.session_state['time'])
 time_utc = Time(time_ist - datetime.timedelta(hours=5.5))
 altaz = AltAz(location=location, obstime=time_utc)
 
-# Define planets and their colors
+# Planets and colors
 planets = {
     "mercury": "blue",
     "venus": "orange",
@@ -90,14 +103,14 @@ else:
         ax.set_facecolor('#2c7491')
         alpha = 0.6
 
-    azimuths = np.radians(azimuths)
-    altitudes = 90 - np.array(altitudes)
+    azimuths_rad = np.radians(azimuths)
+    altitudes_transformed = 90 - np.array(altitudes)
 
     sizes = [200 if label == "Sun" else 100 for label in labels]
-    ax.scatter(azimuths, altitudes, c=colors, s=sizes, alpha=alpha)
+    ax.scatter(azimuths_rad, altitudes_transformed, c=colors, s=sizes, alpha=alpha)
 
     for i, txt in enumerate(labels):
-        ax.text(azimuths[i], altitudes[i], txt, fontsize=12, ha='right', color=colors[i], alpha=alpha)
+        ax.text(azimuths_rad[i], altitudes_transformed[i], txt, fontsize=12, ha='right', color=colors[i], alpha=alpha)
 
     ax.set_theta_zero_location("N")
     ax.set_theta_direction(-1)
@@ -113,7 +126,7 @@ else:
     ax.legend(handles=legend_elements, loc="upper left", bbox_to_anchor=(-0.2, 1.0), fontsize=10)
 
     ax.grid(True, linestyle="--", alpha=0.6)
-    title_color = '#041236' if is_night else '#041236'
+    title_color = '#041236'
     ax.set_title(f"Planets & Sun at {time_ist.strftime('%Y-%m-%d %H:%M IST')}",
                  fontsize=14, color=title_color, pad=30)
 
