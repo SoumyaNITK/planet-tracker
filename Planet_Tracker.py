@@ -1,22 +1,23 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import streamlit as st
 from astropy.coordinates import EarthLocation, AltAz, get_body, get_sun
 from astropy.time import Time
 from astropy import units as u
 from matplotlib.lines import Line2D
+import streamlit as st
 
-# Streamlit setup
-st.set_page_config(page_title="Planet Tracker 🌍", layout="wide")
-st.title("🪐 Real-Time Planet Tracker")
+st.set_page_config(page_title="Planet Tracker", layout="wide")
+st.title("🌍 Planet Tracker")
+st.markdown("### See which planets are visible from your location right now!")
 
-# Set your location
+# Sidebar for location input
 st.sidebar.header("📍 Enter Your Location")
 
-latitude = st.sidebar.number_input("Latitude (°)", value=0.0, format="%.6f")
-longitude = st.sidebar.number_input("Longitude (°)", value=0.0, format="%.6f")
+latitude = st.sidebar.number_input("Latitude (°)", value=13.00844, format="%.6f")
+longitude = st.sidebar.number_input("Longitude (°)", value=74.79777, format="%.6f")
 
 location = EarthLocation(lat=latitude * u.deg, lon=longitude * u.deg)
+
 
 # Get current time
 time_utc = Time.now()
