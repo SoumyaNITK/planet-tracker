@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 from astropy.coordinates import EarthLocation, AltAz, get_body, get_sun
 from astropy.time import Time
 from astropy import units as u
+import streamlit as st
+
+st.set_page_config(page_title="Planet Tracker 🌍", layout="wide")
+
 
 location = EarthLocation(lat=13.00844*u.deg, lon=74.79777*u.deg)
 
