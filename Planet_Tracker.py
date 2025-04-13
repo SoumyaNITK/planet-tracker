@@ -113,7 +113,7 @@ else:
     ax.legend(handles=legend_elements, loc="upper left", bbox_to_anchor=(-0.2, 1.0), fontsize=10)
 
     ax.grid(True, linestyle="--", alpha=0.6)
-    title_color = '#02174d' if is_night else 'green'
+    title_color = '#041236' if is_night else '#041236'
     ax.set_title(f"🌍 Planets & Sun at {time_ist.strftime('%Y-%m-%d %H:%M IST')}",
                  fontsize=14, color=title_color, pad=30)
 
