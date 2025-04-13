@@ -101,7 +101,7 @@ else:
         ax.set_facecolor('#0a0a23')
         alpha = 1.0
     elif is_day:
-        ax.set_facecolor('#bcc756')
+        ax.set_facecolor('#b5d0e8')
         alpha = 0.3
     else:
         ax.set_facecolor('#d4727e')
