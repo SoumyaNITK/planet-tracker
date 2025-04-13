@@ -11,7 +11,12 @@ st.set_page_config(page_title="Planet Tracker 🌍", layout="wide")
 st.title("🪐 Real-Time Planet Tracker")
 
 # Set your location
-location = EarthLocation(lat=13.00844*u.deg, lon=74.79777*u.deg)
+st.sidebar.header("📍 Enter Your Location")
+
+latitude = st.sidebar.number_input("Latitude (°)", value=0.0, format="%.6f")
+longitude = st.sidebar.number_input("Longitude (°)", value=0.0, format="%.6f")
+
+location = EarthLocation(lat=latitude * u.deg, lon=longitude * u.deg)
 
 # Get current time
 time_utc = Time.now()
