@@ -39,15 +39,19 @@ if 'date' not in st.session_state or 'time' not in st.session_state:
     st.session_state['date'] = current_ist.date()
     st.session_state['time'] = current_ist.time().replace(second=0, microsecond=0)
 
+if 'time_input' not in st.session_state:
+    st.session_state['time_input'] = st.session_state['time'].strftime("%H:%M")
+
 # Date and time input
 date = st.date_input("Select date", value=st.session_state['date'])
-time_input = st.text_input("Enter time (IST) in HH:MM format", value=st.session_state['time'].strftime("%H:%M"))
+time_input = st.text_input("Enter time (IST) in HH:MM format", value=st.session_state['time_input'])
 
 # Validate time format
-if re.match(r"^\d{2}:\d{2}$", time_input):
+if re.match(r"^\d{2}:\d{2}$", time_input.strip()):
     try:
-        time = datetime.datetime.strptime(time_input, "%H:%M").time()
-        st.session_state['time'] = time
+        parsed_time = datetime.datetime.strptime(time_input.strip(), "%H:%M").time()
+        st.session_state['time'] = parsed_time
+        st.session_state['time_input'] = time_input
     except ValueError:
         st.warning("Invalid time! Use 24-hour format like 18:30.")
 else:
