@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 st.set_page_config(page_title="Planet Tracker", layout="centered")
 
-st.title("🪐 Planet & Sun Tracker")
+st.title("🪐 Planet & Sun Tracker (India-Friendly)")
 
 # --- Location Input ---
 st.subheader("📍 Enter Your Location")
@@ -19,25 +19,12 @@ location = EarthLocation(lat=latitude*u.deg, lon=longitude*u.deg)
 # --- Time Input (IST) ---
 st.subheader("🕒 Select Time (IST)")
 
-# Initialize session state
-if 'selected_date' not in st.session_state:
-    st.session_state.selected_date = datetime.now().date()
-if 'selected_time' not in st.session_state:
-    st.session_state.selected_time = (datetime.now() + timedelta(minutes=30)).time()
+# Time input without auto-resetting
+selected_date = st.date_input("Choose a date", value=datetime.now().date())
+selected_time = st.time_input("Choose time (IST)", value=(datetime.now() + timedelta(minutes=30)).time())
 
-# Time input
-col1, col2 = st.columns([2, 1])
-with col1:
-    selected_date = st.date_input("Choose a date", value=st.session_state.selected_date, key='selected_date')
-    selected_time = st.time_input("Choose time (IST)", value=st.session_state.selected_time, key='selected_time')
-with col2:
-    if st.button("Use Current Time"):
-        now = datetime.now()
-        st.session_state.selected_date = now.date()
-        st.session_state.selected_time = now.time()
-
-# Combine inputs into datetime
-slider_time_ist = datetime.combine(st.session_state.selected_date, st.session_state.selected_time)
+# Combine date and time, then convert to UTC
+slider_time_ist = datetime.combine(selected_date, selected_time)
 slider_time_utc = slider_time_ist - timedelta(hours=5, minutes=30)
 
 # AltAz frame
