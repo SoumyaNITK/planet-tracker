@@ -30,13 +30,12 @@ try:
     if location_name:
         st.markdown(f"**Location**: {location_name.address}")
 except Exception:
-    pass  # If geopy fails, continue silently
+    pass
 
 # Show current IST time
 current_ist = datetime.datetime.utcnow() + datetime.timedelta(hours=5.5)
 st.markdown(f"**Current IST**: {current_ist.strftime('%Y-%m-%d %H:%M')}")
 
-# Initialize session state for time
 if "time_input" not in st.session_state:
     current_time_str = current_ist.strftime("%H:%M")
     st.session_state.time_input = current_time_str
@@ -49,7 +48,6 @@ st.session_state.date = date
 # Time input
 time_input = st.text_input("Enter time (IST) in HH:MM format", key="time_input")
 
-# Time validation
 if re.match(r"^\d{2}:\d{2}$", time_input.strip()):
     try:
         parsed_time = datetime.datetime.strptime(time_input.strip(), "%H:%M").time()
@@ -159,9 +157,9 @@ with solar_system_ephemeris.set('builtin'):
             set_str = "Never sets"
         rise_set_info.append((planet.capitalize(), rise_str, set_str))
 
-# Display as table
 st.table({
     "Planet": [x[0] for x in rise_set_info],
     "Rise (IST)": [x[1] for x in rise_set_info],
     "Set (IST)": [x[2] for x in rise_set_info],
 })
+
