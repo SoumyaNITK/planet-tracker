@@ -71,7 +71,7 @@ planets = {
     "saturn": "purple",
     "uranus": "cyan",
     "neptune": "darkblue",
-    "sun": "yellow"
+    "sun": "yellow",
     "moon": "white"
 }
 
@@ -169,5 +169,6 @@ st.table({
     "Rise (IST)": [x[1] for x in rise_set_info],
     "Set (IST)": [x[2] for x in rise_set_info],
 })
+
 
 
