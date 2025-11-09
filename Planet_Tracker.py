@@ -72,6 +72,7 @@ planets = {
     "uranus": "cyan",
     "neptune": "darkblue",
     "sun": "yellow"
+    "moon": "white"
 }
 
 altitudes, azimuths, labels, colors = [], [], [], []
@@ -81,7 +82,13 @@ is_night = sun.alt.degree < -6
 is_day = sun.alt.degree > 0
 
 for planet, color in planets.items():
-    obj = sun if planet == "sun" else get_body(planet, time_utc, location).transform_to(altaz)
+    if planet == "sun":
+        obj = sun
+    elif planet == "moon":
+        obj = get_body("moon", time_utc, location).transform_to(altaz)
+    else:
+        obj = get_body(planet, time_utc, location).transform_to(altaz)
+
     if obj.alt.degree > 0:
         altitudes.append(obj.alt.degree)
         azimuths.append(obj.az.degree)
@@ -162,4 +169,5 @@ st.table({
     "Rise (IST)": [x[1] for x in rise_set_info],
     "Set (IST)": [x[2] for x in rise_set_info],
 })
+
 
